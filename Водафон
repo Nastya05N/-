@@ -396,4 +396,156 @@ case
    from operator left join abonent
    on name=name_o
 
+Запити Недовіз
+-- 1/ Показати тих абонентів, у яких тариф Vodafone Light
+Select last_name, name, number_phone from abonent
+where kod_tariff = '32813'
+
+-- 2/ Перейменувати назви стовпців в таблиці дод послуги та посортувати їх за ціною
+Select kod_dod_poslyg as 'Код послуги', nazva_dod_pos as 'Назва послуги', price as 'Ціна послуги', description as 'Опис послуги' from dodatkovi_poslyg
+Order by price
+
+-- 3/ Показати ті центри, які знаходяться у Львові
+Select * from calls_center
+where city in ('Львів')
+
+-- 4/ Відобразити користувачів, у яких прізвище починається на П, Р, С, Т
+Select last_name, name, number_phone from abonent
+where last_name like '[П, Р, С, Т]%'
+Order by last_name
+
+-- 5/ Ціна додаткових послуг
+Select *,
+case
+when price <=50 then 'дешева послуга'
+when price > 50 and price <=200 then 'середня вартість послуги'
+else 'дорога послуга'
+end dodatkovi_poslyg
+from dodatkovi_poslyg
+order by price
+
+--- 6/ поєднання таблиць
+Select a.name, a.last_name, a.number_phone, t.name_tariff
+From abonent as a INNER JOIN tariff as t 
+ON a.kod_tariff = t.kod_tariff
+
+--- 7/Відобразити операторів, у кого старший оператор Сергій Кухоцький
+select o.name_o, o.last_name, d.kod_olderoperatora, d.name_o
+from operator as o INNER join olderoperatora as d
+ON d.kod_olderoperatora = o.kod_olderoperatora
+where d.name_o = 'Сергій'
+
+--- 8/ Відобразити інформацію про користувачів, прізвища я ких починаються на К, Н, О, В, І
+Select a.last_name, a.name, a.number_phone, c.data_call, r.name_reason
+from abonent as a INNER JOIN calls as c 
+ON a.number_phone = c.number_phone 
+INNER JOIN reasons as r
+ON c.id_call = r.id_call
+where last_name like '[К, Н, О, В, І]%'
+
+--- 9/ Відобразити інформацію про користувача, у якого підключена додаткова послуга не менше ніж за 100 грн
+Select a.last_name, a.name, a.number_phone, t.name_tariff, d.nazva_dod_pos, d.price
+from abonent as a INNER JOIN tariff as t
+ON a.kod_tariff = t.kod_tariff
+INNER JOIN dodatkovi_poslyg as d
+ON t.kod_dod_poslyg = d.kod_dod_poslyg
+Where price >= 100
+Order by a.last_name
+
+--- 10/ Відобразити інформацію про користувачів, у яких ім'я закінчується на букву Я і тарифом є 4G Smart S+  (32809)
+Select a.last_name, a.name, a.number_phone, t.kod_tariff, t.name_tariff
+from abonent as a INNER JOIN tariff as t
+ON a.kod_tariff = t.kod_tariff
+where last_name like '%[в]' or t.name_tariff = 'Vodafone 4G Smart S+'
+
+--- 11/ Найдешевша додаткова послуга
+select MIN(price) as 'найдешевша додаткова послуга'
+from dodatkovi_poslyg
+
+--- 12/ Дійсні тарифи
+select name, number_phone,
+case 
+when kod_tariff <= 32804 then 'тариф відсутній'
+when kod_tariff = 32806 then 'тариф діє один день'
+when kod_tariff >= 32809 then 'тариф діє'
+else 'тариф тимчасово не діє'
+End name_di
+from abonent
+where number_phone like '0[2;9]%'
+
+--- 13/ Стан страших операторів
+select name_o,
+case 
+when kod_sypervizor = 69521 then 'оператор у відпустці'
+when kod_sypervizor = 69522 then 'оператор працює'
+when kod_sypervizor = 69523 then 'оператор непрацює'
+else null
+end dija
+from operator
+
+--- 14/ Відобразити операторів, у яких старші оператори мають код від 10001 до 10003
+select kod_olderoperatora, name_o
+from operator
+where kod_olderoperatora between 10001 and 10003
+order by name_o
+
+--- 15/ Відобразити причину дзвінку та вирішення проблеми
+select name_reason as 'Причина дзвінку', decision as 'Рішення'
+from reasons
+where id_reason between 62515 and 62523
+Order by decision
+
+--- 16/ Групування за ім'ям
+select name
+From abonent
+Group By name 
+having name like '[а]%'
+
+--- 17/ Відображає к-сть адмін., які містять букву "e"
+select COUNT(name_e) as 'кількість'
+from adm_pid
+Where last_name like '%[е]%'
+
+--- 18/ Відобразити за якою адресою працюють певні оператори
+Select o.name_o, o.last_name, c.adress
+from operator as o INNER JOIN calls_center as c
+ON o.id_calls_center = c.id_calls_center
+
+--- 19/ Відображає привабливі послуги для абонента
+select nazva_dod_pos, description,
+case
+When price <= 25 then 'дешева послуга'
+when price =100 then 'цілком підходить'
+when price >= 1500 then 'дорога послуга'
+else null
+End das_d 
+from dodatkovi_poslyg
+
+--- 20/ Стан центру
+select city,
+Case 
+when id_calls_center = 571 then 'не працює'
+when id_calls_center = 572 then 'працює'
+when id_calls_center = 573 then 'відсутнє світло'
+else null 
+End name_adads 
+from calls_center
+
+--- 21/ Рішення до проблеми абонента
+select name_reason, decision
+From reasons
+order by name_reason
+
+--- 22/ Відобразити інформацію про користувача, у якого підключена додаткова послуга більше за 100 грн
+Select a.last_name, a.name, a.number_phone, t.name_tariff, d.nazva_dod_pos, d.price
+from abonent as a INNER JOIN tariff as t
+ON a.kod_tariff = t.kod_tariff
+INNER JOIN dodatkovi_poslyg as d
+ON t.kod_dod_poslyg = d.kod_dod_poslyg
+Where price >100
+Order by a.name
+
+--- 23/ 
+Select kod_tariff as 'Код тарифу', name_tariff as 'Назва тарифу' from tariff
+Order by name_tariff
 
